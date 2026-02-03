@@ -1,15 +1,15 @@
 ## 0) Frozen assumptions (do not change)
 
 * **Path representation (per window):** channels are
-  [
+  $$
   (t \in [0,1],\ \log(\text{price}/\text{price}_0))
-  ]
+  $$
 
 * **Signature library:** `signatory`
 * **Classifier:** Logistic Regression
 * **Sliding-window logic:** already validated
 
-## 1) Repository flow (System B end-to-end)
+## 1) Repository flow 
 
 **Training time (synthetic):**
 
@@ -27,7 +27,7 @@
 5. Apply scaler + classifier → `P(bubble)` per window.
 6. Summarize / plot results.
 
-System B has been tested on real Indian stocks (examples): **YES Bank, Suzlon** (bubble-ish), **HDFC Bank, ITC** (non-bubble), **Vodafone Idea** (sideways adversarial).
+Tested on real Indian stocks (examples): **YES Bank, Suzlon** (bubble-ish), **HDFC Bank, ITC** (non-bubble), **Vodafone Idea** (sideways adversarial).
 
 ---
 
@@ -70,10 +70,6 @@ Where `X` is typically `3` or `4` (both depths are already trained/saved per you
 ---
 
 ## 4) File-by-file (System B only)
-
-### `FLOW_STATE.md`
-
-Project “truth” file for what is frozen, what is validated, and what not to redo/refactor.
 
 ### `src/compute_systemB_signatures.py`
 
@@ -216,6 +212,5 @@ A CSV where each ticker includes summary stats like:
    * `outputs/systemB_scan.csv`
    * (optional) plots if `--save_plots` is set.
 
-If any of these fail, **don’t refactor** — fix inputs/paths first. This matches your System B rules: keep it reproducible; no refactors unless explicitly required.
-
+If any of these fail, **don’t refactor** — fix inputs/paths first. 
 ---
