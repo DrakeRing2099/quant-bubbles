@@ -1,0 +1,70 @@
+{
+  "system": "A",
+  "features": "signature",
+  "path_channels": [
+    "T_norm",
+    "K_over_S0",
+    "C"
+  ],
+  "signature_depth": 3,
+  "model": {
+    "type": "LogisticRegression",
+    "solver": "lbfgs",
+    "C": 1.0,
+    "max_iter": 1000
+  },
+  "data": {
+    "signature_dir": "data\\processed\\systemA_signatures",
+    "train_file": "train_signatures_depth3.npz",
+    "val_file": "val_signatures_depth3.npz",
+    "test_file": "test_signatures_depth3.npz",
+    "X_dim": 39,
+    "n_train": 100,
+    "n_val": 20,
+    "n_test": 20
+  },
+  "metrics": {
+    "train": {
+      "accuracy": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [
+        [
+          60,
+          0
+        ],
+        [
+          0,
+          40
+        ]
+      ]
+    },
+    "val": {
+      "accuracy": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [
+        [
+          12,
+          0
+        ],
+        [
+          0,
+          8
+        ]
+      ]
+    },
+    "test": {
+      "accuracy": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [
+        [
+          12,
+          0
+        ],
+        [
+          0,
+          8
+        ]
+      ]
+    }
+  }
+}

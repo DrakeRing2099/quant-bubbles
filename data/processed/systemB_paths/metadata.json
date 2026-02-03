@@ -1,0 +1,9 @@
+{
+  "system": "B",
+  "path_representation": "channels",
+  "channels": [
+    "time_normalized_0_1",
+    "log_price_over_S0"
+  ],
+  "S0_used_for_normalization": 100.0
+}

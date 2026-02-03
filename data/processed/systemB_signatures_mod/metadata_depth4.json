@@ -1,0 +1,52 @@
+{
+  "system": "B",
+  "input": "systemB_paths_for_signature.npz",
+  "signature_depth": 4,
+  "signatory_includes_level0": false,
+  "compute": {
+    "device": "cpu",
+    "batch_size": 512
+  },
+  "variants": [
+    "base_sig",
+    "base_log",
+    "ll_sig",
+    "ll_log"
+  ],
+  "variant_definitions": {
+    "base_sig": {
+      "leadlag": false,
+      "transform": "signature",
+      "channels": [
+        "t_norm",
+        "log_price"
+      ]
+    },
+    "base_log": {
+      "leadlag": false,
+      "transform": "logsignature",
+      "channels": [
+        "t_norm",
+        "log_price"
+      ]
+    },
+    "ll_sig": {
+      "leadlag": true,
+      "transform": "signature",
+      "channels": [
+        "t_norm",
+        "lead(log_price)",
+        "lag(log_price)"
+      ]
+    },
+    "ll_log": {
+      "leadlag": true,
+      "transform": "logsignature",
+      "channels": [
+        "t_norm",
+        "lead(log_price)",
+        "lag(log_price)"
+      ]
+    }
+  }
+}

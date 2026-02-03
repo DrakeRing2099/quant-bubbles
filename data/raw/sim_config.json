@@ -1,0 +1,14 @@
+{
+    "S0": 100.0,
+    "T": 1.0,
+    "n_steps": 252,
+    "dt": 0.003968253968253968,
+    "n_paths_per_model": {
+        "train": 1000,
+        "val": 200,
+        "test": 200
+    },
+    "eps_floor": 1e-06,
+    "random_seed": 12345
+}
+

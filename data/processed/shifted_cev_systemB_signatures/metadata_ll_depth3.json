@@ -1,0 +1,10 @@
+{
+  "system": "B",
+  "dataset": "shifted_cev_random_displacement",
+  "variant": "ll",
+  "signature_depth": 3,
+  "device": "cpu",
+  "batch_size": 512,
+  "paths_dir": "data\\processed\\shifted_cev_systemB_paths",
+  "signatory_includes_level0": false
+}

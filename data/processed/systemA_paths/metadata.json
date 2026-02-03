@@ -1,0 +1,11 @@
+{
+  "system": "A",
+  "path_construction": "raster_scan",
+  "scan_order": "T increasing, then K increasing",
+  "channels": [
+    "T_normalized_by_Tmax",
+    "K_over_S0",
+    "C_call_price"
+  ],
+  "S0": 100.0
+}

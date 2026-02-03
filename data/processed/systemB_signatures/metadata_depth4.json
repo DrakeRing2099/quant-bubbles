@@ -1,0 +1,11 @@
+{
+  "system": "B",
+  "features": "signature",
+  "signature_depth": 4,
+  "signatory_includes_level0": false,
+  "expected_dim_for_d2": null,
+  "compute": {
+    "device": "cpu",
+    "batch_size": 512
+  }
+}

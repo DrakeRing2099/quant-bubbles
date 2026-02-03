@@ -1,0 +1,15 @@
+{
+  "system": "A",
+  "features": "signature",
+  "signature_depth": 3,
+  "signatory_includes_level0": false,
+  "path_channels": [
+    "T_norm",
+    "K_over_S0",
+    "C"
+  ],
+  "compute": {
+    "device": "cpu",
+    "batch_size": 256
+  }
+}
