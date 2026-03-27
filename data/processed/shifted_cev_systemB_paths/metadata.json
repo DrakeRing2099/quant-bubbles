@@ -1,0 +1,68 @@
+{
+  "system": "B",
+  "dataset": "shifted_cev",
+  "dataset_label": "shifted_cev_random_displacement",
+  "raw_dir": "data\\raw\\shifted_cev",
+  "out_dir": "data\\processed\\shifted_cev_systemB_paths",
+  "splits": [
+    "train",
+    "val",
+    "test"
+  ],
+  "path_variants": {
+    "base": {
+      "filename": "{split}_paths_for_signature.npz",
+      "channels": [
+        "t_norm",
+        "log(S/S0)"
+      ]
+    },
+    "lead_lag": {
+      "filename": "{split}_ll_paths_for_signature.npz",
+      "channels": [
+        "t_norm",
+        "lead(log(S/S0))",
+        "lag(log(S/S0))"
+      ]
+    }
+  },
+  "raw_payload_keys": {
+    "train": [
+      "labels",
+      "param_names",
+      "params"
+    ],
+    "val": [
+      "labels",
+      "param_names",
+      "params"
+    ],
+    "test": [
+      "labels",
+      "param_names",
+      "params"
+    ]
+  },
+  "compute": {
+    "eps": 1e-06,
+    "batch_size": 512,
+    "depth_arg": 3,
+    "device_arg": "cpu"
+  },
+  "sim_config": {
+    "random_seed": 12345,
+    "S0": 100.0,
+    "T": 1.0,
+    "n_steps": 252,
+    "eps_floor": 1e-06,
+    "sigma": 1.0,
+    "beta_a": 0.2,
+    "beta_A": 2.0,
+    "disp_D": 20.0,
+    "n_paths": {
+      "train": 80000,
+      "val": 10000,
+      "test": 10000
+    }
+  }
+}

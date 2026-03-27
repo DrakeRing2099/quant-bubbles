@@ -27,13 +27,16 @@ if str(REPO_ROOT) not in sys.path:
 @dataclass
 class ScanConfig:
     ticker: str
-    variant: str
     depth: int
     window: int
     step: int
     threshold: float
+    variant: str | None = None
     start: str | None = None
     end: str | None = None
+    dataset: str = "cev"
+    path_type: str = "lead-lag"
+    feature_type: str = "signature"
 
     # NEW:
     model_kind: str = "supervised"  # "supervised" | "iforest"
@@ -53,6 +56,37 @@ class ScanResult:
 # Choose ONE adapter by setting USE_IMPORT_ADAPTER.
 # ============================================================
 USE_IMPORT_ADAPTER = True  # set False to use CLI/subprocess adapter
+
+VARIANT_MAP = {
+    ("base", "signature"): "base_sig",
+    ("base", "logsignature"): "base_log",
+    ("lead-lag", "signature"): "ll_sig",
+    ("lead-lag", "logsignature"): "ll_log",
+}
+
+
+def _normalize_path_type(path_type: str | None) -> str:
+    raw = (path_type or "lead-lag").strip().lower()
+    if raw in {"ll", "leadlag", "lead-lag"}:
+        return "lead-lag"
+    if raw == "base":
+        return "base"
+    raise ValueError(f"Unknown path_type: {path_type}")
+
+
+def _normalize_feature_type(feature_type: str | None) -> str:
+    raw = (feature_type or "signature").strip().lower()
+    if raw in {"sig", "signature"}:
+        return "signature"
+    if raw in {"log", "logsignature"}:
+        return "logsignature"
+    raise ValueError(f"Unknown feature_type: {feature_type}")
+
+
+def resolve_variant(cfg: ScanConfig) -> str:
+    if cfg.variant:
+        return cfg.variant
+    return VARIANT_MAP[(_normalize_path_type(cfg.path_type), _normalize_feature_type(cfg.feature_type))]
 
 
 # ---------------------------
@@ -80,6 +114,7 @@ def _run_scan_via_import(cfg: ScanConfig) -> ScanResult:
 
     module = __import__(IMPORT_PATH, fromlist=[FUNC_NAME])
     fn = getattr(module, FUNC_NAME)
+    variant = resolve_variant(cfg)
 
     if cfg.model_kind == "iforest":
         out = fn(
@@ -97,7 +132,10 @@ def _run_scan_via_import(cfg: ScanConfig) -> ScanResult:
         # Keep supervised call shape aligned with your variants script
         out = fn(
             ticker=cfg.ticker,
-            variant=cfg.variant,
+            dataset=cfg.dataset,
+            path_type=_normalize_path_type(cfg.path_type),
+            feature_type=_normalize_feature_type(cfg.feature_type),
+            variant=variant,
             depth=int(cfg.depth),
             window=int(cfg.window),
             step=int(cfg.step),
@@ -142,7 +180,8 @@ def _run_scan_via_cli(cfg: ScanConfig) -> ScanResult:
     gui_out = OUTPUTS_DIR / "gui_runs"
     gui_out.mkdir(parents=True, exist_ok=True)
 
-    run_id = f"{cfg.ticker}_{cfg.model_kind}_{cfg.variant}_d{cfg.depth}_w{cfg.window}_s{cfg.step}_{int(time.time())}"
+    variant = resolve_variant(cfg)
+    run_id = f"{cfg.ticker}_{cfg.model_kind}_{variant}_d{cfg.depth}_w{cfg.window}_s{cfg.step}_{int(time.time())}"
     out_csv = gui_out / f"{run_id}.csv"
     out_meta = gui_out / f"{run_id}.meta.json"
 
@@ -167,7 +206,10 @@ def _run_scan_via_cli(cfg: ScanConfig) -> ScanResult:
             sys.executable,
             str(SCRIPT_PATH),
             "--ticker", cfg.ticker,
-            "--variant", cfg.variant,
+            "--dataset", cfg.dataset,
+            "--path_type", _normalize_path_type(cfg.path_type),
+            "--feature_type", _normalize_feature_type(cfg.feature_type),
+            "--variant", variant,
             "--depth", str(cfg.depth),
             "--window", str(cfg.window),
             "--step", str(cfg.step),

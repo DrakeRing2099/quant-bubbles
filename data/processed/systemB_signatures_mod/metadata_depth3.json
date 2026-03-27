@@ -1,6 +1,9 @@
 {
   "system": "B",
-  "input": "systemB_paths_for_signature.npz",
+  "dataset": "cev",
+  "dataset_label": "cev",
+  "paths_dir": "data\\processed\\systemB_paths",
+  "out_dir": "data\\processed\\systemB_signatures_mod",
   "signature_depth": 3,
   "signatory_includes_level0": false,
   "compute": {
@@ -8,39 +11,11 @@
     "batch_size": 512
   },
   "variants": [
-    "base_sig",
-    "base_log",
-    "ll_sig",
     "ll_log"
   ],
   "variant_definitions": {
-    "base_sig": {
-      "leadlag": false,
-      "transform": "signature",
-      "channels": [
-        "t_norm",
-        "log_price"
-      ]
-    },
-    "base_log": {
-      "leadlag": false,
-      "transform": "logsignature",
-      "channels": [
-        "t_norm",
-        "log_price"
-      ]
-    },
-    "ll_sig": {
-      "leadlag": true,
-      "transform": "signature",
-      "channels": [
-        "t_norm",
-        "lead(log_price)",
-        "lag(log_price)"
-      ]
-    },
     "ll_log": {
-      "leadlag": true,
+      "path_variant": "ll",
       "transform": "logsignature",
       "channels": [
         "t_norm",
@@ -48,5 +23,10 @@
         "lag(log_price)"
       ]
     }
+  },
+  "compatibility_aliases": {
+    "train:ll_log": [],
+    "val:ll_log": [],
+    "test:ll_log": []
   }
 }

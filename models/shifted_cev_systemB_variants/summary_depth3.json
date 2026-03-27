@@ -1,0 +1,69 @@
+{
+  "system": "B",
+  "depth": 3,
+  "sig_dir": "data\\processed\\shifted_cev_systemB_signatures",
+  "model": {
+    "type": "LogisticRegression",
+    "solver": "lbfgs",
+    "C": 1.0,
+    "max_iter": 1000
+  },
+  "variants": {
+    "ll_log": {
+      "dims": {
+        "X_dim": 14,
+        "n_train": 80000,
+        "n_val": 10000,
+        "n_test": 10000
+      },
+      "metrics": {
+        "train": {
+          "accuracy": 0.935625,
+          "roc_auc": 0.9603538796874999,
+          "confusion_matrix": [
+            [
+              39491,
+              509
+            ],
+            [
+              4641,
+              35359
+            ]
+          ]
+        },
+        "val": {
+          "accuracy": 0.9423,
+          "roc_auc": 0.96596618,
+          "confusion_matrix": [
+            [
+              4931,
+              69
+            ],
+            [
+              508,
+              4492
+            ]
+          ]
+        },
+        "test": {
+          "accuracy": 0.9362,
+          "roc_auc": 0.96652992,
+          "confusion_matrix": [
+            [
+              4933,
+              67
+            ],
+            [
+              571,
+              4429
+            ]
+          ]
+        }
+      },
+      "artifacts": {
+        "scaler": "models\\shifted_cev_systemB_variants\\ll_log_depth3\\scaler.joblib",
+        "model": "models\\shifted_cev_systemB_variants\\ll_log_depth3\\model.joblib"
+      }
+    }
+  }
+}

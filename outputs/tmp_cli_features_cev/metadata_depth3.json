@@ -1,0 +1,40 @@
+{
+  "system": "B",
+  "dataset": "cev",
+  "dataset_label": "cev",
+  "paths_dir": "outputs\\tmp_cli_paths_cev",
+  "out_dir": "outputs\\tmp_cli_features_cev",
+  "signature_depth": 3,
+  "signatory_includes_level0": false,
+  "compute": {
+    "device": "cpu",
+    "batch_size": 1024
+  },
+  "variants": [
+    "base_sig"
+  ],
+  "variant_definitions": {
+    "base_sig": {
+      "path_variant": "base",
+      "transform": "signature",
+      "channels": [
+        "t_norm",
+        "log_price"
+      ]
+    }
+  },
+  "compatibility_aliases": {
+    "train:base_sig": [
+      "train_base_signatures_depth3.npz",
+      "train_signatures_depth3.npz"
+    ],
+    "val:base_sig": [
+      "val_base_signatures_depth3.npz",
+      "val_signatures_depth3.npz"
+    ],
+    "test:base_sig": [
+      "test_base_signatures_depth3.npz",
+      "test_signatures_depth3.npz"
+    ]
+  }
+}

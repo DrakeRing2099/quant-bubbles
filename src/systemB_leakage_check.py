@@ -10,6 +10,11 @@ import signatory
 from joblib import load
 import yfinance as yf
 
+try:
+    from src.sklearn_compat import load_joblib_with_sklearn_compat
+except ImportError:
+    from sklearn_compat import load_joblib_with_sklearn_compat
+
 
 def project_root() -> Path:
     # this file lives in: <root>/src/systemB_leakage_check.py
@@ -126,8 +131,8 @@ def main():
     if not clf_path.exists():
         raise FileNotFoundError(f"Missing classifier: {clf_path}")
 
-    scaler = load(scaler_path)
-    clf = load(clf_path)
+    scaler = load_joblib_with_sklearn_compat(scaler_path)
+    clf = load_joblib_with_sklearn_compat(clf_path)
 
     close = fetch_adj_close(args.ticker, args.start, args.end)
 

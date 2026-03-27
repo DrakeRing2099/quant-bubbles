@@ -160,8 +160,14 @@ with st.sidebar:
 
     # Variant applies only to supervised pipeline
     if model_kind == "supervised":
-        variant = st.selectbox("Variant", ["ll_sig", "base_sig", "ll_log", "base_log"], index=0)
+        dataset = st.selectbox("Dataset", ["cev", "shifted_cev", "sin"], index=0)
+        path_type = st.selectbox("Path type", ["base", "lead-lag"], index=1)
+        feature_type = st.selectbox("Feature type", ["signature", "logsignature"], index=0)
+        variant = None
     else:
+        dataset = "cev"
+        path_type = "lead-lag"
+        feature_type = "signature"
         variant = "base_sig"  # placeholder; ignored by iforest backend
 
     depth = st.selectbox("Depth", [3, 4], index=0)
@@ -298,13 +304,16 @@ with tab1:
     else:
         cfg = ScanConfig(
             ticker=ticker_single.strip(),
-            variant=variant,
             depth=int(depth),
             window=int(window),
             step=int(step),
             threshold=float(threshold),
+            variant=variant,
             start=start,
             end=end,
+            dataset=dataset,
+            path_type=path_type,
+            feature_type=feature_type,
             model_kind=model_kind,      # NEW
             fit_frac=float(fit_frac),   # NEW
             seed=int(seed),             # NEW
@@ -333,9 +342,17 @@ with tab1:
         colA, colB = st.columns([2, 1], gap="large")
 
         # Title fragments
-        model_tag = "iforest" if model_kind == "iforest" else variant
+        if model_kind == "iforest":
+            model_tag = "iforest"
+            config_label = "Model: Isolation Forest"
+            config_slug = "iforest"
+        else:
+            model_tag = f"{dataset} | {path_type} | {feature_type}"
+            config_label = f"Dataset: {dataset} | Path: {path_type} | Feature: {feature_type} | Depth: {depth}"
+            config_slug = f"{dataset}_{'ll' if path_type == 'lead-lag' else 'base'}_{'log' if feature_type == 'logsignature' else 'sig'}"
 
         with colA:
+            st.caption(config_label)
             fig = plt.figure()
             ax = plt.gca()
             _plot_prob(
@@ -371,7 +388,7 @@ with tab1:
             st.download_button(
                 label="Download visible probs CSV",
                 data=csv_bytes,
-                file_name=f"{cfg.ticker}_{model_tag}_d{depth}_w{window}_s{step}_probs.csv",
+                file_name=f"{cfg.ticker}_{config_slug}_d{depth}_w{window}_s{step}_probs.csv",
                 mime="text/csv",
             )
 
@@ -398,13 +415,16 @@ with tab2:
             for t in tickers:
                 cfg = ScanConfig(
                     ticker=t,
-                    variant=variant,
                     depth=int(depth),
                     window=int(window),
                     step=int(step),
                     threshold=float(threshold),
+                    variant=variant,
                     start=start,
                     end=end,
+                    dataset=dataset,
+                    path_type=path_type,
+                    feature_type=feature_type,
                     model_kind=model_kind,      # NEW
                     fit_frac=float(fit_frac),   # NEW
                     seed=int(seed),             # NEW
@@ -427,8 +447,14 @@ with tab2:
 
             df = pd.concat(series, axis=1).sort_index()
 
-            model_tag = "iforest" if model_kind == "iforest" else variant
+            if model_kind == "iforest":
+                model_tag = "iforest"
+                config_label = "Model: Isolation Forest"
+            else:
+                model_tag = f"{dataset} | {path_type} | {feature_type}"
+                config_label = f"Dataset: {dataset} | Path: {path_type} | Feature: {feature_type} | Depth: {depth}"
 
+            st.caption(config_label)
             fig = plt.figure()
             ax = plt.gca()
             for col in df.columns:

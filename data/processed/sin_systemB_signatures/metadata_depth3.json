@@ -1,0 +1,32 @@
+{
+  "system": "B",
+  "dataset": "sin",
+  "dataset_label": "sin_stochastic_volatility",
+  "paths_dir": "data\\processed\\sin_systemB_paths",
+  "out_dir": "data\\processed\\sin_systemB_signatures",
+  "signature_depth": 3,
+  "signatory_includes_level0": false,
+  "compute": {
+    "device": "cpu",
+    "batch_size": 512
+  },
+  "variants": [
+    "ll_log"
+  ],
+  "variant_definitions": {
+    "ll_log": {
+      "path_variant": "ll",
+      "transform": "logsignature",
+      "channels": [
+        "t_norm",
+        "lead(log_price)",
+        "lag(log_price)"
+      ]
+    }
+  },
+  "compatibility_aliases": {
+    "train:ll_log": [],
+    "val:ll_log": [],
+    "test:ll_log": []
+  }
+}

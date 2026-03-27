@@ -1,0 +1,69 @@
+{
+  "system": "B",
+  "depth": 3,
+  "sig_dir": "data\\processed\\sin_systemB_signatures",
+  "model": {
+    "type": "LogisticRegression",
+    "solver": "lbfgs",
+    "C": 1.0,
+    "max_iter": 1000
+  },
+  "variants": {
+    "ll_log": {
+      "dims": {
+        "X_dim": 14,
+        "n_train": 80000,
+        "n_val": 10000,
+        "n_test": 10000
+      },
+      "metrics": {
+        "train": {
+          "accuracy": 0.622125,
+          "roc_auc": 0.665631334375,
+          "confusion_matrix": [
+            [
+              27948,
+              12052
+            ],
+            [
+              18178,
+              21822
+            ]
+          ]
+        },
+        "val": {
+          "accuracy": 0.6325,
+          "roc_auc": 0.6726784800000001,
+          "confusion_matrix": [
+            [
+              3547,
+              1453
+            ],
+            [
+              2222,
+              2778
+            ]
+          ]
+        },
+        "test": {
+          "accuracy": 0.6245,
+          "roc_auc": 0.6625287599999999,
+          "confusion_matrix": [
+            [
+              3536,
+              1464
+            ],
+            [
+              2291,
+              2709
+            ]
+          ]
+        }
+      },
+      "artifacts": {
+        "scaler": "models\\sin_systemB_variants\\ll_log_depth3\\scaler.joblib",
+        "model": "models\\sin_systemB_variants\\ll_log_depth3\\model.joblib"
+      }
+    }
+  }
+}

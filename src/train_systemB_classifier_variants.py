@@ -19,15 +19,15 @@ def load_variant_split(sig_dir: Path, split: str, variant: str, depth: int):
     """
     Expects files saved by compute_systemB_signatures_mod.py:
       {split}_{variant}_depth{depth}.npz
-    with keys: X_sig, labels, model_id
+    with keys: X_sig, labels, and optionally model_id
     """
     p = sig_dir / f"{split}_{variant}_depth{depth}.npz"
     if not p.exists():
         raise FileNotFoundError(f"Missing features file: {p}")
-    d = np.load(p)
+    d = np.load(p, allow_pickle=True)
     X = d["X_sig"]
     y = d["labels"]
-    mid = d["model_id"]
+    mid = d["model_id"] if "model_id" in d.files else None
     return X, y, mid
 
 

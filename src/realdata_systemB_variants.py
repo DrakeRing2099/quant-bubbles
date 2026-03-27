@@ -11,6 +11,11 @@ import torch
 import signatory
 from joblib import load
 
+try:
+    from src.sklearn_compat import load_joblib_with_sklearn_compat
+except ImportError:
+    from sklearn_compat import load_joblib_with_sklearn_compat
+
 
 # -------------------------
 # Paths / loading
@@ -36,13 +41,54 @@ def variant_to_config(variant: str) -> tuple[bool, str]:
     raise ValueError(f"Unknown variant: {variant}. Use one of base_sig, base_log, ll_sig, ll_log.")
 
 
-def load_model(root: Path, variant: str, depth: int):
+VARIANT_MAP = {
+    ("base", "signature"): "base_sig",
+    ("base", "logsignature"): "base_log",
+    ("lead-lag", "signature"): "ll_sig",
+    ("lead-lag", "logsignature"): "ll_log",
+}
+
+
+def normalize_path_type(path_type: str | None) -> str:
+    raw = (path_type or "lead-lag").strip().lower()
+    if raw in {"ll", "leadlag", "lead-lag"}:
+        return "lead-lag"
+    if raw == "base":
+        return "base"
+    raise ValueError(f"Unknown path_type: {path_type}")
+
+
+def normalize_feature_type(feature_type: str | None) -> str:
+    raw = (feature_type or "signature").strip().lower()
+    if raw in {"sig", "signature"}:
+        return "signature"
+    if raw in {"log", "logsignature"}:
+        return "logsignature"
+    raise ValueError(f"Unknown feature_type: {feature_type}")
+
+
+def resolve_variant(path_type: str | None, feature_type: str | None, variant: str | None) -> str:
+    if variant:
+        return variant
+    return VARIANT_MAP[(normalize_path_type(path_type), normalize_feature_type(feature_type))]
+
+
+def model_root_for_dataset(root: Path, dataset: str) -> Path:
+    dataset_key = (dataset or "cev").strip().lower()
+    if dataset_key == "cev":
+        return root / "models" / "systemB_variants"
+    if dataset_key in {"shifted_cev", "sin"}:
+        return root / "models" / f"{dataset_key}_systemB_variants"
+    raise ValueError(f"Unknown dataset: {dataset}")
+
+
+def load_model(root: Path, dataset: str, variant: str, depth: int):
     """
     Loads:
-      models/systemB_variants/{variant}_depth{depth}/scaler.joblib
-      models/systemB_variants/{variant}_depth{depth}/model.joblib
+      models/<dataset>/{variant}_depth{depth}/scaler.joblib
+      models/<dataset>/{variant}_depth{depth}/model.joblib
     """
-    model_dir = root / "models" / "systemB_variants" / f"{variant}_depth{depth}"
+    model_dir = model_root_for_dataset(root, dataset) / f"{variant}_depth{depth}"
     scaler_path = model_dir / "scaler.joblib"
     model_path = model_dir / "model.joblib"
 
@@ -51,8 +97,8 @@ def load_model(root: Path, variant: str, depth: int):
     if not model_path.exists():
         raise FileNotFoundError(f"Missing model: {model_path}")
 
-    scaler = load(scaler_path)
-    clf = load(model_path)
+    scaler = load_joblib_with_sklearn_compat(scaler_path)
+    clf = load_joblib_with_sklearn_compat(model_path)
     return scaler, clf
 
 
@@ -239,13 +285,17 @@ def scan_ticker(
     end: Optional[str],
     window: int,
     step: int,
-    variant: str,
+    dataset: str,
+    path_type: str,
+    feature_type: str,
     depth: int,
     device: str,
+    variant: str | None = None,
 ) -> Tuple[pd.Series, pd.DataFrame]:
     root = project_root()
+    variant = resolve_variant(path_type=path_type, feature_type=feature_type, variant=variant)
     leadlag, transform = variant_to_config(variant)
-    scaler, clf = load_model(root, variant=variant, depth=depth)
+    scaler, clf = load_model(root, dataset=dataset, variant=variant, depth=depth)
 
     s = fetch_adj_close(ticker, start=start, end=end)
     paths, end_dates = make_paths_from_series(s, window=window, step=step, leadlag=leadlag)
@@ -343,7 +393,6 @@ def maybe_plot_and_save(
 
 def run_scan_return_series(
     ticker: str,
-    variant: str,
     depth: int,
     window: int,
     step: int,
@@ -351,6 +400,10 @@ def run_scan_return_series(
     end: str | None = None,
     threshold: float = 0.8,
     device: str = "cpu",
+    dataset: str = "cev",
+    path_type: str = "lead-lag",
+    feature_type: str = "signature",
+    variant: str | None = None,
 ):
     """
     GUI entrypoint.
@@ -359,15 +412,19 @@ def run_scan_return_series(
       - probs: pd.DataFrame with column 'bubble_prob' (DatetimeIndex)
       - meta: dict
     """
+    variant = resolve_variant(path_type=path_type, feature_type=feature_type, variant=variant)
     s, probs_df = scan_ticker(
         ticker=ticker,
         start=start,
         end=end,
         window=int(window),
         step=int(step),
-        variant=variant,
+        dataset=dataset,
+        path_type=normalize_path_type(path_type),
+        feature_type=normalize_feature_type(feature_type),
         depth=int(depth),
         device=device,
+        variant=variant,
     )
 
     # Optional stats
@@ -378,6 +435,9 @@ def run_scan_return_series(
         "probs": probs_df,
         "meta": {
             "ticker": ticker,
+            "dataset": dataset,
+            "path_type": normalize_path_type(path_type),
+            "feature_type": normalize_feature_type(feature_type),
             "variant": variant,
             "depth": int(depth),
             "window": int(window),
@@ -399,7 +459,10 @@ def main():
     parser.add_argument("--end", type=str, default=None)
     parser.add_argument("--window", type=int, default=252)
     parser.add_argument("--step", type=int, default=5)
-    parser.add_argument("--variant", type=str, default="base_sig",
+    parser.add_argument("--dataset", type=str, default="cev", choices=["cev", "shifted_cev", "sin"])
+    parser.add_argument("--path_type", type=str, default="lead-lag", choices=["base", "lead-lag"])
+    parser.add_argument("--feature_type", type=str, default="signature", choices=["signature", "logsignature"])
+    parser.add_argument("--variant", type=str, default=None,
                         choices=["base_sig", "base_log", "ll_sig", "ll_log"])
     parser.add_argument("--depth", type=int, default=3)
     parser.add_argument("--device", type=str, default="cpu", help="cpu or cuda")
@@ -417,15 +480,22 @@ def main():
         end=args.end,
         window=args.window,
         step=args.step,
-        variant=args.variant,
+        dataset=args.dataset,
+        path_type=args.path_type,
+        feature_type=args.feature_type,
         depth=args.depth,
         device=args.device,
+        variant=args.variant,
     )
 
     stats = summarize_probs(probs, lookback_days=252)
+    variant = resolve_variant(args.path_type, args.feature_type, args.variant)
     print("\n=== Summary ===")
     print(f"Ticker: {args.ticker}")
-    print(f"Variant: {args.variant} | depth={args.depth} | window={args.window} | step={args.step}")
+    print(
+        f"Dataset: {args.dataset} | Path: {args.path_type} | Feature: {args.feature_type} "
+        f"| Variant: {variant} | depth={args.depth} | window={args.window} | step={args.step}"
+    )
     for k, v in stats.items():
         print(f"{k}: {v}")
 
@@ -437,7 +507,7 @@ def main():
             s=s,
             probs_df=probs,
             out_dir=out_dir,
-            variant=args.variant,
+            variant=variant,
             depth=args.depth,
             threshold=args.threshold,
         )

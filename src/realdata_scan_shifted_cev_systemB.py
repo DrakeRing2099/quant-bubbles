@@ -12,6 +12,11 @@ from joblib import load
 
 import matplotlib.pyplot as plt
 
+try:
+    from src.sklearn_compat import load_joblib_with_sklearn_compat
+except ImportError:
+    from sklearn_compat import load_joblib_with_sklearn_compat
+
 
 def project_root() -> Path:
     return Path(__file__).resolve().parents[1]
@@ -117,8 +122,8 @@ def main():
 
     root = project_root()
     model_dir = root / args.model_dir
-    scaler = load(model_dir / f"scaler_{args.variant}_depth{args.depth}.joblib")
-    clf = load(model_dir / f"logreg_{args.variant}_depth{args.depth}.joblib")
+    scaler = load_joblib_with_sklearn_compat(model_dir / f"scaler_{args.variant}_depth{args.depth}.joblib")
+    clf = load_joblib_with_sklearn_compat(model_dir / f"logreg_{args.variant}_depth{args.depth}.joblib")
 
     s = fetch_adj_close(args.ticker, args.start, args.end)
     paths, end_dates = make_paths(s, args.window, args.step, args.variant)

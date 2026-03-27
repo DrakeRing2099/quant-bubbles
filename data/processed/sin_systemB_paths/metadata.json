@@ -1,0 +1,74 @@
+{
+  "system": "B",
+  "dataset": "sin",
+  "dataset_label": "sin_stochastic_volatility",
+  "raw_dir": "data\\raw\\sin",
+  "out_dir": "data\\processed\\sin_systemB_paths",
+  "splits": [
+    "train",
+    "val",
+    "test"
+  ],
+  "path_variants": {
+    "base": {
+      "filename": "{split}_paths_for_signature.npz",
+      "channels": [
+        "t_norm",
+        "log(S/S0)"
+      ]
+    },
+    "lead_lag": {
+      "filename": "{split}_ll_paths_for_signature.npz",
+      "channels": [
+        "t_norm",
+        "lead(log(S/S0))",
+        "lag(log(S/S0))"
+      ]
+    }
+  },
+  "raw_payload_keys": {
+    "train": [
+      "labels",
+      "param_names",
+      "params"
+    ],
+    "val": [
+      "labels",
+      "param_names",
+      "params"
+    ],
+    "test": [
+      "labels",
+      "param_names",
+      "params"
+    ]
+  },
+  "compute": {
+    "eps": 1e-06,
+    "batch_size": 512,
+    "depth_arg": 3,
+    "device_arg": "cpu"
+  },
+  "sim_config": {
+    "random_seed": 12345,
+    "Y0": 100.0,
+    "v0": 0.5,
+    "T": 1.0,
+    "n_steps": 252,
+    "alpha": 1.0,
+    "kappa": 0.0,
+    "L": 0.0,
+    "sigma2": -0.5,
+    "a1": 1.8,
+    "a2": 1.2,
+    "sigma1_lo_tm": 0.0,
+    "sigma1_hi_tm": 0.3333333333333333,
+    "sigma1_lo_slm": 0.3333333333333333,
+    "sigma1_hi_slm": 1.0,
+    "n_paths": {
+      "train": 80000,
+      "val": 10000,
+      "test": 10000
+    }
+  }
+}

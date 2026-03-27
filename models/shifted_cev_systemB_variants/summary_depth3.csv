@@ -1,0 +1,2 @@
+variant,depth,X_dim,train_acc,train_auc,val_acc,val_auc,test_acc,test_auc
+ll_log,3,14,0.935625,0.9603538796874999,0.9423,0.96596618,0.9362,0.96652992

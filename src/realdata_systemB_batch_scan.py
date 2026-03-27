@@ -11,6 +11,11 @@ import torch
 import signatory
 from joblib import load
 
+try:
+    from src.sklearn_compat import load_joblib_with_sklearn_compat
+except ImportError:
+    from sklearn_compat import load_joblib_with_sklearn_compat
+
 
 def project_root() -> Path:
     return Path(__file__).resolve().parents[1]
@@ -24,8 +29,8 @@ def load_model(root: Path, depth: int):
         raise FileNotFoundError(f"Missing scaler: {scaler_path}")
     if not model_path.exists():
         raise FileNotFoundError(f"Missing model: {model_path}")
-    scaler = load(scaler_path)
-    clf = load(model_path)
+    scaler = load_joblib_with_sklearn_compat(scaler_path)
+    clf = load_joblib_with_sklearn_compat(model_path)
     return scaler, clf
 
 

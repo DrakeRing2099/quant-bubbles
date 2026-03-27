@@ -11,6 +11,11 @@ from joblib import load
 
 import yfinance as yf
 
+try:
+    from src.sklearn_compat import load_joblib_with_sklearn_compat
+except ImportError:
+    from sklearn_compat import load_joblib_with_sklearn_compat
+
 
 def project_root() -> Path:
     return Path(__file__).resolve().parents[1]
@@ -106,8 +111,8 @@ def main():
 
     device = args.device
 
-    scaler = load(scaler_path)
-    clf = load(clf_path)
+    scaler = load_joblib_with_sklearn_compat(scaler_path)
+    clf = load_joblib_with_sklearn_compat(clf_path)
 
     close_series = fetch_prices(args.ticker, args.start, args.end)
     close = close_series.values.astype(np.float64)

@@ -47,6 +47,7 @@ requests==2.32.5
 rpds-py==0.30.0
 scikit-learn==1.8.0
 scipy==1.16.3
+signature_mahalanobis_knn==0.1.0
 signatory==1.2.6.1.9.0
 six==1.17.0
 smmap==5.0.2

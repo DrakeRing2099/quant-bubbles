@@ -1,0 +1,13 @@
+dataset,path,feature,depth,accuracy,roc_auc
+cev,base,sig,3,0.947,0.9494374999999999
+cev,base,log,3,0.919,0.9223833333333333
+cev,ll,sig,3,0.971,0.9962125000000001
+cev,ll,log,3,0.932,0.9401250000000001
+shifted_cev,base,sig,3,0.9354,0.9688140000000001
+shifted_cev,base,log,3,0.936,0.9653504399999999
+shifted_cev,ll,sig,3,0.9374,0.9723541
+shifted_cev,ll,log,3,0.9362,0.96652992
+sin,base,sig,3,0.5802,0.62823768
+sin,base,log,3,0.5657,0.6168996
+sin,ll,sig,3,0.6323,0.6689607599999999
+sin,ll,log,3,0.6245,0.6625287599999999

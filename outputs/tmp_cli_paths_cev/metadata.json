@@ -1,0 +1,50 @@
+{
+  "system": "B",
+  "dataset": "cev",
+  "dataset_label": "cev",
+  "raw_dir": "data\\raw\\paths",
+  "out_dir": "outputs\\tmp_cli_paths_cev",
+  "splits": [
+    "train",
+    "val",
+    "test"
+  ],
+  "path_variants": {
+    "base": {
+      "filename": "{split}_paths_for_signature.npz",
+      "channels": [
+        "t_norm",
+        "log(S/S0)"
+      ]
+    },
+    "lead_lag": {
+      "filename": "{split}_ll_paths_for_signature.npz",
+      "channels": [
+        "t_norm",
+        "lead(log(S/S0))",
+        "lag(log(S/S0))"
+      ]
+    }
+  },
+  "raw_payload_keys": {
+    "train": [
+      "labels",
+      "model_id"
+    ],
+    "val": [
+      "labels",
+      "model_id"
+    ],
+    "test": [
+      "labels",
+      "model_id"
+    ]
+  },
+  "compute": {
+    "eps": 1e-06,
+    "batch_size": 1024,
+    "depth_arg": 3,
+    "device_arg": "cpu"
+  },
+  "sim_config": null
+}
