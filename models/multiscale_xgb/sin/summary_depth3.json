@@ -1,0 +1,111 @@
+{
+  "model_family": "multiscale_xgb",
+  "dataset": "sin",
+  "depth": 3,
+  "features_dir": "data\\processed\\multiscale_xgb_features\\sin",
+  "model_path": "models\\multiscale_xgb\\sin\\model_depth3.joblib",
+  "classifier": {
+    "type": "XGBClassifier",
+    "n_estimators": 400,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.9,
+    "seed": 0
+  },
+  "feature_metadata": {
+    "model_family": "multiscale_xgb",
+    "dataset": "sin",
+    "dataset_label": "sin_stochastic_volatility",
+    "raw_dir": "D:\\Coding Stuff\\PROJECTS\\quant_bubbles\\data\\raw\\sin",
+    "out_dir": "D:\\Coding Stuff\\PROJECTS\\quant_bubbles\\data\\processed\\multiscale_xgb_features\\sin",
+    "feature_type": "logsignature",
+    "classifier": "XGBoost",
+    "channels": [
+      "time",
+      "normalized_log_price",
+      "rolling_realized_volatility",
+      "momentum",
+      "drawdown"
+    ],
+    "scales": [
+      21,
+      50,
+      108,
+      252
+    ],
+    "local_lookback": 10,
+    "signature_depth": 3,
+    "compute": {
+      "device": "cpu",
+      "batch_size": 256
+    },
+    "payload_keys": {
+      "train": [
+        "labels",
+        "param_names",
+        "params"
+      ],
+      "val": [
+        "labels",
+        "param_names",
+        "params"
+      ],
+      "test": [
+        "labels",
+        "param_names",
+        "params"
+      ]
+    }
+  },
+  "dims": {
+    "X_dim": 220,
+    "n_train": 80000,
+    "n_val": 10000,
+    "n_test": 10000
+  },
+  "metrics": {
+    "train": {
+      "accuracy": 0.8346375,
+      "roc_auc": 0.9158963931249998,
+      "confusion_matrix": [
+        [
+          33803,
+          6197
+        ],
+        [
+          7032,
+          32968
+        ]
+      ]
+    },
+    "val": {
+      "accuracy": 0.8191,
+      "roc_auc": 0.8992839199999999,
+      "confusion_matrix": [
+        [
+          4121,
+          879
+        ],
+        [
+          930,
+          4070
+        ]
+      ]
+    },
+    "test": {
+      "accuracy": 0.8147,
+      "roc_auc": 0.89717532,
+      "confusion_matrix": [
+        [
+          4109,
+          891
+        ],
+        [
+          962,
+          4038
+        ]
+      ]
+    }
+  }
+}

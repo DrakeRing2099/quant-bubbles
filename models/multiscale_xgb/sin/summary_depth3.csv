@@ -1,0 +1,2 @@
+dataset,depth,accuracy,roc_auc,train_accuracy,val_accuracy,test_accuracy
+sin,3,0.8147,0.89717532,0.8346375,0.8191,0.8147

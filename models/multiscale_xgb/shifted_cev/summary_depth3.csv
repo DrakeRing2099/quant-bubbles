@@ -1,0 +1,2 @@
+dataset,depth,accuracy,roc_auc,train_accuracy,val_accuracy,test_accuracy
+shifted_cev,3,0.9897,0.99952848,0.996275,0.989,0.9897

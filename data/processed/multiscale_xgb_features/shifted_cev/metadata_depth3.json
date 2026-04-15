@@ -1,0 +1,45 @@
+{
+  "model_family": "multiscale_xgb",
+  "dataset": "shifted_cev",
+  "dataset_label": "shifted_cev_random_displacement",
+  "raw_dir": "D:\\Coding Stuff\\PROJECTS\\quant_bubbles\\data\\raw\\shifted_cev",
+  "out_dir": "D:\\Coding Stuff\\PROJECTS\\quant_bubbles\\data\\processed\\multiscale_xgb_features\\shifted_cev",
+  "feature_type": "logsignature",
+  "classifier": "XGBoost",
+  "channels": [
+    "time",
+    "normalized_log_price",
+    "rolling_realized_volatility",
+    "momentum",
+    "drawdown"
+  ],
+  "scales": [
+    21,
+    50,
+    108,
+    252
+  ],
+  "local_lookback": 10,
+  "signature_depth": 3,
+  "compute": {
+    "device": "cpu",
+    "batch_size": 256
+  },
+  "payload_keys": {
+    "train": [
+      "labels",
+      "param_names",
+      "params"
+    ],
+    "val": [
+      "labels",
+      "param_names",
+      "params"
+    ],
+    "test": [
+      "labels",
+      "param_names",
+      "params"
+    ]
+  }
+}

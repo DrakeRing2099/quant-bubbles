@@ -35,8 +35,11 @@ class ScanConfig:
     start: str | None = None
     end: str | None = None
     dataset: str = "cev"
-    path_type: str = "lead-lag"
-    feature_type: str = "signature"
+    path_type: str | None = "lead-lag"
+    feature_type: str | None = "signature"
+    model_family: str = "supervised_systemB"
+    local_lookback: int = 10
+    multiscale_windows: tuple[int, ...] = (21, 50, 108, 252)
 
     # NEW:
     model_kind: str = "supervised"  # "supervised" | "iforest"
@@ -89,6 +92,25 @@ def resolve_variant(cfg: ScanConfig) -> str:
     return VARIANT_MAP[(_normalize_path_type(cfg.path_type), _normalize_feature_type(cfg.feature_type))]
 
 
+def _normalize_multiscale_windows(windows: tuple[int, ...] | list[int] | str | None) -> tuple[int, ...]:
+    if windows is None:
+        return (21, 50, 108, 252)
+    if isinstance(windows, str):
+        parts = [part.strip() for part in windows.split(",") if part.strip()]
+        values = tuple(int(part) for part in parts)
+    else:
+        values = tuple(int(v) for v in windows)
+    if not values:
+        raise ValueError("multiscale_windows cannot be empty")
+    return values
+
+
+def resolve_model_family(cfg: ScanConfig) -> str:
+    if cfg.model_family:
+        return cfg.model_family
+    return "iforest" if cfg.model_kind == "iforest" else "supervised_systemB"
+
+
 # ---------------------------
 # Adapter A: import + call a function from your code
 # ---------------------------
@@ -107,16 +129,19 @@ def _run_scan_via_import(cfg: ScanConfig) -> ScanResult:
     """
     FUNC_NAME = "run_scan_return_series"
 
-    if cfg.model_kind == "iforest":
+    model_family = resolve_model_family(cfg)
+
+    if model_family == "iforest":
         IMPORT_PATH = "src.realdata_systemB_iforest"
+    elif model_family == "multiscale_xgb":
+        IMPORT_PATH = "src.realdata_multiscale_xgb"
     else:
         IMPORT_PATH = "src.realdata_systemB_variants"
 
     module = __import__(IMPORT_PATH, fromlist=[FUNC_NAME])
     fn = getattr(module, FUNC_NAME)
-    variant = resolve_variant(cfg)
 
-    if cfg.model_kind == "iforest":
+    if model_family == "iforest":
         out = fn(
             ticker=cfg.ticker,
             start=cfg.start or "2014-01-01",
@@ -128,7 +153,22 @@ def _run_scan_via_import(cfg: ScanConfig) -> ScanResult:
             fit_frac=float(getattr(cfg, "fit_frac", 0.25)),
             seed=int(getattr(cfg, "seed", 0)),
         )
+    elif model_family == "multiscale_xgb":
+        out = fn(
+            ticker=cfg.ticker,
+            dataset=cfg.dataset,
+            start=cfg.start or "2014-01-01",
+            end=cfg.end,
+            step=int(cfg.step),
+            depth=int(cfg.depth),
+            device=getattr(cfg, "device", "cpu"),
+            local_lookback=int(getattr(cfg, "local_lookback", 10)),
+            multiscale_windows=_normalize_multiscale_windows(getattr(cfg, "multiscale_windows", (21, 50, 108, 252))),
+            window=int(cfg.window),
+            threshold=float(cfg.threshold),
+        )
     else:
+        variant = resolve_variant(cfg)
         # Keep supervised call shape aligned with your variants script
         out = fn(
             ticker=cfg.ticker,
@@ -180,13 +220,15 @@ def _run_scan_via_cli(cfg: ScanConfig) -> ScanResult:
     gui_out = OUTPUTS_DIR / "gui_runs"
     gui_out.mkdir(parents=True, exist_ok=True)
 
-    variant = resolve_variant(cfg)
-    run_id = f"{cfg.ticker}_{cfg.model_kind}_{variant}_d{cfg.depth}_w{cfg.window}_s{cfg.step}_{int(time.time())}"
+    model_family = resolve_model_family(cfg)
+    variant = resolve_variant(cfg) if model_family == "supervised_systemB" else None
+    tag = variant if variant else model_family
+    run_id = f"{cfg.ticker}_{tag}_d{cfg.depth}_w{cfg.window}_s{cfg.step}_{int(time.time())}"
     out_csv = gui_out / f"{run_id}.csv"
     out_meta = gui_out / f"{run_id}.meta.json"
 
     # Choose script
-    if cfg.model_kind == "iforest":
+    if model_family == "iforest":
         SCRIPT_PATH = SRC_DIR / "realdata_systemB_iforest.py"
         cmd = [
             sys.executable,
@@ -199,6 +241,19 @@ def _run_scan_via_cli(cfg: ScanConfig) -> ScanResult:
             "--seed", str(getattr(cfg, "seed", 0)),
             "--device", str(getattr(cfg, "device", "cpu")),
             "--out_dir", str(gui_out),
+        ]
+    elif model_family == "multiscale_xgb":
+        SCRIPT_PATH = SRC_DIR / "realdata_multiscale_xgb.py"
+        cmd = [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--ticker", cfg.ticker,
+            "--dataset", cfg.dataset,
+            "--depth", str(cfg.depth),
+            "--step", str(cfg.step),
+            "--device", str(getattr(cfg, "device", "cpu")),
+            "--local_lookback", str(getattr(cfg, "local_lookback", 10)),
+            "--multiscale_windows", ",".join(str(v) for v in _normalize_multiscale_windows(cfg.multiscale_windows)),
         ]
     else:
         SCRIPT_PATH = SRC_DIR / "realdata_systemB_variants.py"
@@ -258,7 +313,7 @@ def _run_scan_via_cli(cfg: ScanConfig) -> ScanResult:
         "run_id": run_id,
         "out_csv": str(out_csv),
         "stdout_tail": proc.stdout[-1000:],
-        "model_kind": cfg.model_kind,
+        "model_family": model_family,
     }
 
     out_meta.write_text(json.dumps(meta, indent=2))

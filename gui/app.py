@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 from pathlib import Path
 import json
 
+import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -72,6 +73,14 @@ def _parse_tickers(text: str) -> List[str]:
     return [t for t in tickers if t]
 
 
+def _parse_windows(text: str) -> tuple[int, ...]:
+    items = [part.strip() for part in text.replace("\n", ",").split(",") if part.strip()]
+    values = tuple(int(part) for part in items)
+    if not values or any(v < 2 for v in values):
+        raise ValueError("Multiscale windows must be integers >= 2.")
+    return values
+
+
 def _slice_by_date(df: pd.DataFrame, start: Optional[pd.Timestamp], end: Optional[pd.Timestamp]) -> pd.DataFrame:
     out = df
     if start is not None:
@@ -106,6 +115,7 @@ def _plot_price(ax, price: pd.Series, title: str):
     ax.set_title(title)
     ax.set_xlabel("Date")
     ax.set_ylabel("Price")
+    _format_date_axis(ax)
 
 
 def _plot_prob(ax, probs: pd.DataFrame, threshold: float, title: str, autoscale: bool):
@@ -115,12 +125,26 @@ def _plot_prob(ax, probs: pd.DataFrame, threshold: float, title: str, autoscale:
     ax.set_title(title)
     ax.set_xlabel("Date")
     ax.set_ylabel("P(bubble)")
+    _format_date_axis(ax)
     if autoscale and len(y) > 0 and np.isfinite(y).any():
         peak = float(np.nanmax(y.values))
         ymax = min(1.0, peak * 1.05) if peak > 0 else 1.0
         ax.set_ylim(-0.02, max(0.2, ymax))
     else:
         ax.set_ylim(-0.02, 1.02)
+
+
+def _format_date_axis(ax):
+    locator = mdates.AutoDateLocator(minticks=4, maxticks=8)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
+    ax.tick_params(axis="x", labelrotation=30)
+    for label in ax.get_xticklabels():
+        label.set_horizontalalignment("right")
+
+
+def _make_figure(figsize: Tuple[float, float] = (9.5, 4.8)):
+    return plt.subplots(figsize=figsize, constrained_layout=True)
 
 
 def _summary_stats(probs: pd.DataFrame, threshold: float) -> dict:
@@ -150,38 +174,44 @@ with st.sidebar:
     start = start_raw.strip() or None
     end = end_raw.strip() or None
 
-    # NEW: model selection
-    model_label = st.selectbox(
-        "Model",
-        ["Supervised (Signature + Logistic)", "Unsupervised (Isolation Forest)"],
+    model_family = st.selectbox(
+        "Model family",
+        ["supervised_systemB", "multiscale_xgb", "iforest"],
         index=0,
     )
-    model_kind = "iforest" if "Isolation" in model_label else "supervised"
+    model_kind = "iforest" if model_family == "iforest" else "supervised"
 
-    # Variant applies only to supervised pipeline
-    if model_kind == "supervised":
+    if model_family == "supervised_systemB":
         dataset = st.selectbox("Dataset", ["cev", "shifted_cev", "sin"], index=0)
         path_type = st.selectbox("Path type", ["base", "lead-lag"], index=1)
         feature_type = st.selectbox("Feature type", ["signature", "logsignature"], index=0)
         variant = None
+        local_lookback = 10
+        multiscale_windows = (21, 50, 108, 252)
+    elif model_family == "multiscale_xgb":
+        dataset = st.selectbox("Dataset", ["cev", "shifted_cev", "sin"], index=0)
+        local_lookback = int(st.number_input("Local lookback", min_value=2, max_value=100, value=10, step=1))
+        scales_text = st.text_input("Multiscale windows", value="21,50,108,252")
+        try:
+            multiscale_windows = _parse_windows(scales_text)
+        except ValueError as exc:
+            st.error(str(exc))
+            multiscale_windows = (21, 50, 108, 252)
+        path_type = None
+        feature_type = None
+        variant = None
     else:
         dataset = "cev"
-        path_type = "lead-lag"
-        feature_type = "signature"
-        variant = "base_sig"  # placeholder; ignored by iforest backend
+        path_type = None
+        feature_type = None
+        variant = None
+        local_lookback = 10
+        multiscale_windows = (21, 50, 108, 252)
 
     depth = st.selectbox("Depth", [3, 4], index=0)
 
-    colw, cols = st.columns(2)
-    with colw:
-        window = st.number_input(
-            "Window (trading days)",
-            min_value=10,
-            max_value=2000,
-            value=108,
-            step=1,
-        )
-    with cols:
+    if model_family == "multiscale_xgb":
+        window = max(multiscale_windows)
         step = st.number_input(
             "Step (days)",
             min_value=1,
@@ -189,15 +219,33 @@ with st.sidebar:
             value=5,
             step=1,
         )
+    else:
+        colw, cols = st.columns(2)
+        with colw:
+            window = st.number_input(
+                "Window (trading days)",
+                min_value=10,
+                max_value=2000,
+                value=108,
+                step=1,
+            )
+        with cols:
+            step = st.number_input(
+                "Step (days)",
+                min_value=1,
+                max_value=250,
+                value=5,
+                step=1,
+            )
 
     # Threshold defaults depend on model
-    if model_kind == "iforest":
+    if model_family == "iforest":
         threshold = st.slider("Threshold", min_value=0.10, max_value=0.99, value=0.60, step=0.01)
     else:
         threshold = st.slider("Threshold", min_value=0.10, max_value=0.99, value=0.80, step=0.01)
 
     # NEW: iforest parameters
-    if model_kind == "iforest":
+    if model_family == "iforest":
         st.caption("Isolation Forest settings")
         fit_frac = st.slider("Baseline fraction (fit)", 0.05, 0.60, 0.25, 0.05)
         seed = st.number_input("Seed", min_value=0, max_value=1_000_000, value=0, step=1)
@@ -314,6 +362,9 @@ with tab1:
             dataset=dataset,
             path_type=path_type,
             feature_type=feature_type,
+            model_family=model_family,
+            local_lookback=int(local_lookback),
+            multiscale_windows=multiscale_windows,
             model_kind=model_kind,      # NEW
             fit_frac=float(fit_frac),   # NEW
             seed=int(seed),             # NEW
@@ -342,10 +393,18 @@ with tab1:
         colA, colB = st.columns([2, 1], gap="large")
 
         # Title fragments
-        if model_kind == "iforest":
+        if model_family == "iforest":
             model_tag = "iforest"
             config_label = "Model: Isolation Forest"
             config_slug = "iforest"
+        elif model_family == "multiscale_xgb":
+            scales_label = "-".join(str(v) for v in multiscale_windows)
+            model_tag = f"multiscale_xgb | {dataset}"
+            config_label = (
+                f"Model: multiscale_xgb | Dataset: {dataset} | Scales: {', '.join(str(v) for v in multiscale_windows)} "
+                f"| Local lookback: {local_lookback} | Depth: {depth}"
+            )
+            config_slug = f"multiscale_xgb_{dataset}_sc{scales_label}_lk{local_lookback}"
         else:
             model_tag = f"{dataset} | {path_type} | {feature_type}"
             config_label = f"Dataset: {dataset} | Path: {path_type} | Feature: {feature_type} | Depth: {depth}"
@@ -353,8 +412,7 @@ with tab1:
 
         with colA:
             st.caption(config_label)
-            fig = plt.figure()
-            ax = plt.gca()
+            fig, ax = _make_figure()
             _plot_prob(
                 ax,
                 probs_v,
@@ -364,8 +422,7 @@ with tab1:
             )
             st.pyplot(fig, clear_figure=True)
 
-            fig2 = plt.figure()
-            ax2 = plt.gca()
+            fig2, ax2 = _make_figure()
             _plot_price(ax2, price_v, f"{cfg.ticker} adjusted close")
             st.pyplot(fig2, clear_figure=True)
 
@@ -425,6 +482,9 @@ with tab2:
                     dataset=dataset,
                     path_type=path_type,
                     feature_type=feature_type,
+                    model_family=model_family,
+                    local_lookback=int(local_lookback),
+                    multiscale_windows=multiscale_windows,
                     model_kind=model_kind,      # NEW
                     fit_frac=float(fit_frac),   # NEW
                     seed=int(seed),             # NEW
@@ -447,22 +507,34 @@ with tab2:
 
             df = pd.concat(series, axis=1).sort_index()
 
-            if model_kind == "iforest":
+            if model_family == "iforest":
                 model_tag = "iforest"
                 config_label = "Model: Isolation Forest"
+            elif model_family == "multiscale_xgb":
+                model_tag = f"multiscale_xgb | {dataset}"
+                config_label = (
+                    f"Model: multiscale_xgb | Dataset: {dataset} | Scales: {', '.join(str(v) for v in multiscale_windows)} "
+                    f"| Local lookback: {local_lookback} | Depth: {depth}"
+                )
             else:
                 model_tag = f"{dataset} | {path_type} | {feature_type}"
                 config_label = f"Dataset: {dataset} | Path: {path_type} | Feature: {feature_type} | Depth: {depth}"
 
             st.caption(config_label)
-            fig = plt.figure()
-            ax = plt.gca()
+            fig, ax = _make_figure()
             for col in df.columns:
                 ax.plot(df.index, df[col].values, label=col)
             ax.axhline(threshold)
-            ax.set_title(f"Bubble probability comparison ({model_tag}, depth={depth}, window={window}, step={step})")
+            if model_family == "multiscale_xgb":
+                ax.set_title(
+                    f"Bubble probability comparison ({model_tag}, depth={depth}, "
+                    f"scales={','.join(str(v) for v in multiscale_windows)}, step={step})"
+                )
+            else:
+                ax.set_title(f"Bubble probability comparison ({model_tag}, depth={depth}, window={window}, step={step})")
             ax.set_xlabel("Date")
             ax.set_ylabel("P(bubble)")
+            _format_date_axis(ax)
 
             if autoscale_prob:
                 peak = float(np.nanmax(df.values)) if df.size else 1.0
