@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import torch
-import signatory
 
 
 SPLITS: tuple[str, ...] = ("train", "val", "test")
@@ -43,6 +41,13 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         raw_dir="data/raw/sin",
         paths_dir="data/processed/sin_systemB_paths",
         features_dir="data/processed/sin_systemB_signatures",
+    ),
+    "switching_cev": DatasetSpec(
+        name="switching_cev",
+        dataset_label="switching_cev_poisson_regimes",
+        raw_dir="data/raw/switching_cev",
+        paths_dir="data/processed/switching_cev_systemB_paths",
+        features_dir="data/processed/switching_cev_systemB_signatures",
     ),
 }
 
@@ -269,25 +274,30 @@ def build_lead_lag_paths(
 
 
 def validate_device(device: str) -> None:
-    if device == "cuda" and not torch.cuda.is_available():
+    if device != "cuda":
+        return
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError("Requested --device cuda but torch is not installed.") from exc
+    if not torch.cuda.is_available():
         raise RuntimeError("Requested --device cuda but CUDA is not available. Use --device cpu.")
 
 
 def compute_signature(paths: np.ndarray, depth: int, device: str) -> np.ndarray:
-    tensor = torch.from_numpy(np.asarray(paths, dtype=np.float32)).to(device)
-    with torch.no_grad():
-        feat = signatory.signature(tensor, depth=depth)
-    return feat.detach().cpu().numpy()
+    try:
+        from src.sig_backend import compute_signature as _compute_signature
+    except ImportError:
+        from sig_backend import compute_signature as _compute_signature
+    return _compute_signature(paths, depth=depth, device=device)
 
 
 def compute_logsignature(paths: np.ndarray, depth: int, device: str) -> np.ndarray:
-    tensor = torch.from_numpy(np.asarray(paths, dtype=np.float32)).to(device)
-    with torch.no_grad():
-        try:
-            feat = signatory.logsignature(tensor, depth=depth)
-        except TypeError:
-            feat = signatory.logsignature(tensor, depth=depth, mode="words")
-    return feat.detach().cpu().numpy()
+    try:
+        from src.sig_backend import compute_logsignature as _compute_logsignature
+    except ImportError:
+        from sig_backend import compute_logsignature as _compute_logsignature
+    return _compute_logsignature(paths, depth=depth, device=device)
 
 
 def compute_features(

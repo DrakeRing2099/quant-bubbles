@@ -26,7 +26,7 @@ PATH_LABELS = {"base": "base", "ll": "lead-lag"}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the full System B experiment pipeline.")
-    parser.add_argument("--dataset", choices=["cev", "shifted_cev", "sin"])
+    parser.add_argument("--dataset", choices=["cev", "shifted_cev", "sin", "switching_cev"])
     parser.add_argument("--path", choices=["base", "ll"])
     parser.add_argument("--feature", choices=["sig", "log"])
     parser.add_argument("--depth", type=int, default=3)

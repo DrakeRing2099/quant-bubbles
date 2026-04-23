@@ -1,0 +1,237 @@
+{
+  "system": "B",
+  "depth": 3,
+  "sig_dir": "data\\processed\\switching_cev_systemB_signatures",
+  "model": {
+    "type": "LogisticRegression",
+    "solver": "lbfgs",
+    "C": 1.0,
+    "max_iter": 1000
+  },
+  "variants": {
+    "base_sig": {
+      "dims": {
+        "X_dim": 14,
+        "n_train": 80000,
+        "n_val": 10000,
+        "n_test": 10000
+      },
+      "metrics": {
+        "train": {
+          "accuracy": 0.57055,
+          "roc_auc": 0.5964290047576439,
+          "confusion_matrix": [
+            [
+              22577,
+              17255
+            ],
+            [
+              17101,
+              23067
+            ]
+          ]
+        },
+        "val": {
+          "accuracy": 0.5737,
+          "roc_auc": 0.6037385751082492,
+          "confusion_matrix": [
+            [
+              2846,
+              2131
+            ],
+            [
+              2132,
+              2891
+            ]
+          ]
+        },
+        "test": {
+          "accuracy": 0.571,
+          "roc_auc": 0.5963028065351847,
+          "confusion_matrix": [
+            [
+              2855,
+              2153
+            ],
+            [
+              2137,
+              2855
+            ]
+          ]
+        }
+      },
+      "artifacts": {
+        "scaler": "models\\switching_cev_systemB_variants\\base_sig_depth3\\scaler.joblib",
+        "model": "models\\switching_cev_systemB_variants\\base_sig_depth3\\model.joblib"
+      }
+    },
+    "base_log": {
+      "dims": {
+        "X_dim": 5,
+        "n_train": 80000,
+        "n_val": 10000,
+        "n_test": 10000
+      },
+      "metrics": {
+        "train": {
+          "accuracy": 0.5604625,
+          "roc_auc": 0.6008060163431282,
+          "confusion_matrix": [
+            [
+              30350,
+              9482
+            ],
+            [
+              25681,
+              14487
+            ]
+          ]
+        },
+        "val": {
+          "accuracy": 0.5675,
+          "roc_auc": 0.6094193353131352,
+          "confusion_matrix": [
+            [
+              3830,
+              1147
+            ],
+            [
+              3178,
+              1845
+            ]
+          ]
+        },
+        "test": {
+          "accuracy": 0.567,
+          "roc_auc": 0.6030774638783075,
+          "confusion_matrix": [
+            [
+              3839,
+              1169
+            ],
+            [
+              3161,
+              1831
+            ]
+          ]
+        }
+      },
+      "artifacts": {
+        "scaler": "models\\switching_cev_systemB_variants\\base_log_depth3\\scaler.joblib",
+        "model": "models\\switching_cev_systemB_variants\\base_log_depth3\\model.joblib"
+      }
+    },
+    "ll_sig": {
+      "dims": {
+        "X_dim": 39,
+        "n_train": 80000,
+        "n_val": 10000,
+        "n_test": 10000
+      },
+      "metrics": {
+        "train": {
+          "accuracy": 0.5690125,
+          "roc_auc": 0.5963386600389631,
+          "confusion_matrix": [
+            [
+              22181,
+              17651
+            ],
+            [
+              16828,
+              23340
+            ]
+          ]
+        },
+        "val": {
+          "accuracy": 0.5737,
+          "roc_auc": 0.603661493477202,
+          "confusion_matrix": [
+            [
+              2809,
+              2168
+            ],
+            [
+              2095,
+              2928
+            ]
+          ]
+        },
+        "test": {
+          "accuracy": 0.5687,
+          "roc_auc": 0.5954868844464243,
+          "confusion_matrix": [
+            [
+              2809,
+              2199
+            ],
+            [
+              2114,
+              2878
+            ]
+          ]
+        }
+      },
+      "artifacts": {
+        "scaler": "models\\switching_cev_systemB_variants\\ll_sig_depth3\\scaler.joblib",
+        "model": "models\\switching_cev_systemB_variants\\ll_sig_depth3\\model.joblib"
+      }
+    },
+    "ll_log": {
+      "dims": {
+        "X_dim": 14,
+        "n_train": 80000,
+        "n_val": 10000,
+        "n_test": 10000
+      },
+      "metrics": {
+        "train": {
+          "accuracy": 0.56175,
+          "roc_auc": 0.6007362160493511,
+          "confusion_matrix": [
+            [
+              30318,
+              9514
+            ],
+            [
+              25546,
+              14622
+            ]
+          ]
+        },
+        "val": {
+          "accuracy": 0.5689,
+          "roc_auc": 0.6091252890911172,
+          "confusion_matrix": [
+            [
+              3822,
+              1155
+            ],
+            [
+              3156,
+              1867
+            ]
+          ]
+        },
+        "test": {
+          "accuracy": 0.5673,
+          "roc_auc": 0.6023987021406775,
+          "confusion_matrix": [
+            [
+              3823,
+              1185
+            ],
+            [
+              3142,
+              1850
+            ]
+          ]
+        }
+      },
+      "artifacts": {
+        "scaler": "models\\switching_cev_systemB_variants\\ll_log_depth3\\scaler.joblib",
+        "model": "models\\switching_cev_systemB_variants\\ll_log_depth3\\model.joblib"
+      }
+    }
+  }
+}

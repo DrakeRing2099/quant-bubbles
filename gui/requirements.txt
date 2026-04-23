@@ -1,0 +1,16 @@
+# Quant Bubbles — inference-only requirements for Streamlit Cloud deployment
+# Training dependencies are intentionally excluded here.
+
+streamlit>=1.32.0
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+yfinance>=0.2.40
+scikit-learn>=1.3.0
+joblib>=1.3.0
+
+# Signature computation — required for all model families at inference
+iisignature
+
+# Multiscale XGBoost model family
+xgboost>=2.0.0

@@ -22,9 +22,14 @@ from systemB_pipeline_common import (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compute System B signature and logsignature features for cev, shifted_cev, or sin datasets."
+        description="Compute System B signature and logsignature features for supported System B datasets."
     )
-    parser.add_argument("--dataset", type=str, required=True, choices=["cev", "shifted_cev", "sin"])
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        required=True,
+        choices=["cev", "shifted_cev", "sin", "switching_cev"],
+    )
     parser.add_argument("--in_dir", type=str, default=None, help="Processed System B paths directory.")
     parser.add_argument("--out_dir", type=str, default=None, help="Feature output directory.")
     parser.add_argument("--depth", type=int, default=3, help="Signature/logsignature depth.")

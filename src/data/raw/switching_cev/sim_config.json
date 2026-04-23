@@ -1,0 +1,18 @@
+{
+  "random_seed": 42,
+  "S0": 100.0,
+  "T": 1.0,
+  "n_steps": 252,
+  "eps_floor": 1e-06,
+  "gamma0": 0.3,
+  "lambda_switch": 4.0,
+  "gamma1_lo_normal": 0.2,
+  "gamma1_hi_normal": 1.0,
+  "gamma1_lo_bubble": 1.0,
+  "gamma1_hi_bubble": 2.0,
+  "n_paths": {
+    "train": 80000,
+    "val": 10000,
+    "test": 10000
+  }
+}

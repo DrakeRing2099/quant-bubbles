@@ -7,8 +7,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import yfinance as yf
-import torch
-import signatory
 from joblib import load
 
 try:
@@ -77,6 +75,8 @@ def model_root_for_dataset(root: Path, dataset: str) -> Path:
     dataset_key = (dataset or "cev").strip().lower()
     if dataset_key == "cev":
         return root / "models" / "systemB_variants"
+    if dataset_key == "switching_cev":
+        return root / "models" / "switching_cev_systemB_variants"
     if dataset_key in {"shifted_cev", "sin"}:
         return root / "models" / f"{dataset_key}_systemB_variants"
     raise ValueError(f"Unknown dataset: {dataset}")
@@ -261,18 +261,16 @@ def make_paths_from_series(
 # -------------------------
 
 def features_from_paths(paths: np.ndarray, depth: int, transform: str, device: str) -> np.ndarray:
-    X = torch.from_numpy(np.asarray(paths, dtype=np.float32)).to(device)
-    with torch.no_grad():
-        if transform == "signature":
-            feat = signatory.signature(X, depth=depth)
-        elif transform == "logsignature":
-            try:
-                feat = signatory.logsignature(X, depth=depth)
-            except TypeError:
-                feat = signatory.logsignature(X, depth=depth, mode="words")
-        else:
-            raise ValueError(f"Unknown transform: {transform}")
-    return feat.detach().cpu().numpy()
+    try:
+        from src.sig_backend import compute_logsignature, compute_signature
+    except ImportError:
+        from sig_backend import compute_logsignature, compute_signature
+
+    if transform == "signature":
+        return compute_signature(paths, depth=depth, device=device)
+    if transform == "logsignature":
+        return compute_logsignature(paths, depth=depth, device=device)
+    raise ValueError(f"Unknown transform: {transform}")
 
 
 # -------------------------
@@ -459,7 +457,12 @@ def main():
     parser.add_argument("--end", type=str, default=None)
     parser.add_argument("--window", type=int, default=252)
     parser.add_argument("--step", type=int, default=5)
-    parser.add_argument("--dataset", type=str, default="cev", choices=["cev", "shifted_cev", "sin"])
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="cev",
+        choices=["cev", "shifted_cev", "sin", "switching_cev"],
+    )
     parser.add_argument("--path_type", type=str, default="lead-lag", choices=["base", "lead-lag"])
     parser.add_argument("--feature_type", type=str, default="signature", choices=["signature", "logsignature"])
     parser.add_argument("--variant", type=str, default=None,
@@ -471,8 +474,13 @@ def main():
     parser.add_argument("--no_plots", action="store_true")
     args = parser.parse_args()
 
-    if args.device == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("Requested --device cuda but CUDA is not available. Use --device cpu.")
+    if args.device == "cuda":
+        try:
+            import torch
+        except ImportError as exc:
+            raise RuntimeError("Requested --device cuda but torch is not installed.") from exc
+        if not torch.cuda.is_available():
+            raise RuntimeError("Requested --device cuda but CUDA is not available. Use --device cpu.")
 
     s, probs = scan_ticker(
         ticker=args.ticker,

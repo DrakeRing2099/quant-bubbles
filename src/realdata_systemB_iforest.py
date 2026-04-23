@@ -7,9 +7,6 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-import torch
-import signatory
-
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest
 
@@ -89,18 +86,15 @@ def compute_signatures(
     device: str,
     batch_size: int = 512,
 ) -> np.ndarray:
-    if device == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("CUDA requested but not available.")
-
-    X = torch.from_numpy(paths).to(torch.float32).to(device)
+    try:
+        from src.sig_backend import compute_signature
+    except ImportError:
+        from sig_backend import compute_signature
 
     feats = []
-    with torch.no_grad():
-        for i in range(0, X.shape[0], batch_size):
-            batch = X[i : i + batch_size]
-            sig = signatory.signature(batch, depth=depth)
-            feats.append(sig.cpu().numpy())
-
+    for i in range(0, paths.shape[0], batch_size):
+        batch = paths[i : i + batch_size]
+        feats.append(compute_signature(batch, depth=depth, device=device))
     return np.vstack(feats)
 
 

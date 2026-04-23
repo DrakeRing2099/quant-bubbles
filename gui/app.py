@@ -182,7 +182,7 @@ with st.sidebar:
     model_kind = "iforest" if model_family == "iforest" else "supervised"
 
     if model_family == "supervised_systemB":
-        dataset = st.selectbox("Dataset", ["cev", "shifted_cev", "sin"], index=0)
+        dataset = st.selectbox("Dataset", ["cev", "shifted_cev", "sin", "switching_cev"], index=0)
         path_type = st.selectbox("Path type", ["base", "lead-lag"], index=1)
         feature_type = st.selectbox("Feature type", ["signature", "logsignature"], index=0)
         variant = None

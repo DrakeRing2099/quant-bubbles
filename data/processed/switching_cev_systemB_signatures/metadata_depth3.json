@@ -1,0 +1,81 @@
+{
+  "system": "B",
+  "dataset": "switching_cev",
+  "dataset_label": "switching_cev_poisson_regimes",
+  "paths_dir": "data\\processed\\switching_cev_systemB_paths",
+  "out_dir": "data\\processed\\switching_cev_systemB_signatures",
+  "signature_depth": 3,
+  "signatory_includes_level0": false,
+  "compute": {
+    "device": "cpu",
+    "batch_size": 512
+  },
+  "variants": [
+    "base_sig",
+    "base_log",
+    "ll_sig",
+    "ll_log"
+  ],
+  "variant_definitions": {
+    "base_sig": {
+      "path_variant": "base",
+      "transform": "signature",
+      "channels": [
+        "t_norm",
+        "log_price"
+      ]
+    },
+    "base_log": {
+      "path_variant": "base",
+      "transform": "logsignature",
+      "channels": [
+        "t_norm",
+        "log_price"
+      ]
+    },
+    "ll_sig": {
+      "path_variant": "ll",
+      "transform": "signature",
+      "channels": [
+        "t_norm",
+        "lead(log_price)",
+        "lag(log_price)"
+      ]
+    },
+    "ll_log": {
+      "path_variant": "ll",
+      "transform": "logsignature",
+      "channels": [
+        "t_norm",
+        "lead(log_price)",
+        "lag(log_price)"
+      ]
+    }
+  },
+  "compatibility_aliases": {
+    "train:base_sig": [
+      "train_base_signatures_depth3.npz"
+    ],
+    "train:base_log": [],
+    "train:ll_sig": [
+      "train_ll_signatures_depth3.npz"
+    ],
+    "train:ll_log": [],
+    "val:base_sig": [
+      "val_base_signatures_depth3.npz"
+    ],
+    "val:base_log": [],
+    "val:ll_sig": [
+      "val_ll_signatures_depth3.npz"
+    ],
+    "val:ll_log": [],
+    "test:base_sig": [
+      "test_base_signatures_depth3.npz"
+    ],
+    "test:base_log": [],
+    "test:ll_sig": [
+      "test_ll_signatures_depth3.npz"
+    ],
+    "test:ll_log": []
+  }
+}
